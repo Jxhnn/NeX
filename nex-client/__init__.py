@@ -1,20 +1,19 @@
 # Start Imports
 import os
+import admin
 import shutil
-import subprocess
-from datetime import datetime
-from os import listdir
-from os.path import isfile
-from sys import exit
-
-import config as cfg
 import psutil
 import requests
-import admin
 import colorama
-from colorama import Fore
+import subprocess
+import config as cfg
 
-# End Imports
+from sys import exit
+from os import listdir
+from colorama import Fore
+from os.path import isfile
+from datetime import datetime
+
 
 class Screenshare(object):
 	def __init__(self):
@@ -30,7 +29,7 @@ class Screenshare(object):
 	@staticmethod
 	def asAdmin():
 		if not admin.isUserAdmin():
-			admin.runAsAdmin(wait = False)
+			admin.runAsAdmin(wait=False)
 			exit()
 
 	# Finds minecraft process and gets info
@@ -100,7 +99,8 @@ class Screenshare(object):
 		return strings
 
 	# Checking for recording software
-	def recordingCheck(self):
+	@staticmethod
+	def recordingCheck():
 
 		tasks = str(subprocess.check_output('tasklist')).lower()
 		found = [x for x in cfg.recordingSoftwares if x in tasks]
@@ -170,7 +170,6 @@ class Screenshare(object):
 
 		if found:
 			for string in found:
-				# print(f'    {cfg.prefixWarning} {cfg.dpsStrings[string]} ({string})')
 				print(f' :' + Fore.RED + f' Not Clean ({cfg.dpsStrings[string]})' + Fore.WHITE)
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
@@ -182,7 +181,7 @@ class Screenshare(object):
 		found = [x for x in listdir(path) if isfile(f'{path}/{x}') if 'JNativeHook' in x and x.endswith('.dll')]
 
 		if found:
-			print(f'    {cfg.prefixWarning} JNativeHook autoclicker found ({found[0]})')
+			print(f' : ' + Fore.RED + f' Not Clean')
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 

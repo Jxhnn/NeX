@@ -7,10 +7,8 @@ strings2Url = 'https://github.com/glmcdona/strings2/raw/master/x64/Release/strin
 # For sending coloured text in chat
 colorama.init()
 prefix = Fore.BLUE+Style.BRIGHT+f'[NeX]'+Fore.WHITE
-prefixWarning = Fore.RED+'[!]'+Fore.WHITE
-green = Fore.GREEN
 
-scanID = "".join(random.choice('ABCDEFGHJKLMNPQRSTUVWXYZ123456789') for i in range(1, 7))
+scanID = "".join(random.choice('ABCDEFGHJKLMNPQRSTUVWXYZ1234567890') for i in range(1, 5))
 
 # 'nvidia share':'Geforce Experience'
 recordingSoftwares = {'bdcam.exe': 'Bandicam',
