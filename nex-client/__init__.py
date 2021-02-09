@@ -35,7 +35,7 @@ class Screenshare(object):
 		self.Check04 = 'passed'
 		self.Check05 = 'passed'
 		self.Check06 = 'passed'
-		self.deletedFiles = ''
+		self.deletedFiles = None
 		colorama.init()
 
 	@staticmethod
@@ -91,7 +91,8 @@ class Screenshare(object):
 
 	def connectDatabase(self):
 		# Don't forget to set only read permissions to this user for more security.
-		cnx = mysql.connector.connect(host='localhost', user='root', password='password', database='Nex')
+		self.sqlCnx = mysql.connector.connect(host=f'{cfg.host}', user=f'{cfg.user}', password=f'{cfg.password}', database=f'{cfg.database}')
+		self.sqlCursor = self.sqlCnx.cursor()
 
 	# Gets PID of a process from name
 	@staticmethod
@@ -252,24 +253,27 @@ class Screenshare(object):
 		exit()
 
 	def saveScan(self):
-		# print('saving scan...')
-		query = f'INSERT INTO Scans (ScanID, HWID, Check02, Check03, Check4, Check5, Check6, deletedFiles) VALUES ' \
-				f'({cfg.scanID}, {self.Check02}, {self.Check03}, {self.Check03}, {self.Check04}, {self.Check05}, {self.Check06}, )'
+		if self.deletedFiles is None:
+			self.deletedFiles = 'none'
+
+		query = f'INSERT INTO Scans (ScanID, HWID, Check02, Check03, Check04, Check05, Check06, deletedFiles) VALUES '
+		query = query + f'("{cfg.scanID}", "{cfg.hwid}", "{self.Check02}", "{self.Check03}", "{self.Check04}", '
+		query = query + f'"{self.Check05}", "{self.Check06}", "{self.deletedFiles}")'
+		
 		self.sqlCursor.execute(query)
 		self.sqlCnx.commit()
 
 
 
-
-
 sshare = Screenshare()
+
 sshare.asAdmin()
 sshare.mcProcess()
 sshare.dependencies()
 sshare.connectDatabase()
 
 print(f'{cfg.prefix} Starting Scan with ID: {cfg.scanID}\n')
-print(f'{cfg.prefix} HWID : {cfg.hwid}\n')
+# print(f'{cfg.prefix} HWID : {cfg.hwid}\n')
 
 print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #01')
 sshare.recordingCheck()
@@ -288,6 +292,9 @@ sshare.jnativehook()
 
 print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #06')
 sshare.executedDeleted()
+
+
+sshare.saveScan()
 
 print('')
 sshare.end()
