@@ -7,23 +7,35 @@ import requests
 import colorama
 import subprocess
 import config as cfg
+# mysql-connector-python
+import mysql.connector
 
 from sys import exit
 from os import listdir
 from colorama import Fore
 from os.path import isfile
 from datetime import datetime
+# End Imports
 
 
 class Screenshare(object):
 	def __init__(self):
 		super(Screenshare, self).__init__()
+		self.sqlCnx = None
+		self.sqlCursor = None
 		self.user_path = '/'.join(os.getcwd().split('\\', 3)[:3])
 		self.drive_letter = os.getcwd().split('\\', 1)[0]+'/'
 		self.winUsername = os.getlogin()
 		self.javawPid = ''
 		self.mcPath = ''
 		self.lunarClient = False
+
+		self.Check02 = 'passed'
+		self.Check03 = 'passed'
+		self.Check04 = 'passed'
+		self.Check05 = 'passed'
+		self.Check06 = 'passed'
+		self.deletedFiles = ''
 		colorama.init()
 
 	@staticmethod
@@ -75,7 +87,11 @@ class Screenshare(object):
 		if not os.path.exists(path):
 			os.mkdir(path)
 		with open(f'{path}/strings2.exe', 'wb') as f:
-			f.write(requests.get(cfg.strings2Url).content)
+			f.write(requests.get(cfg.stringsSoftware).content)
+
+	def connectDatabase(self):
+		# Don't forget to set only read permissions to this user for more security.
+		cnx = mysql.connector.connect(host='localhost', user='root', password='password', database='Nex')
 
 	# Gets PID of a process from name
 	@staticmethod
@@ -118,22 +134,20 @@ class Screenshare(object):
 		SID = str(subprocess.check_output(f'wmic useraccount where name="{self.winUsername}" get sid')).split('\\r\\r\\n')[1]
 		recycle_bin_path = self.drive_letter+"/$Recycle.Bin/"+SID
 
-		# Recyble modified time check
+		# Recycle bin modified time check
 		a = datetime.fromtimestamp(os.path.getmtime(recycle_bin_path))
 		b = datetime.now()
 		c = b - a
 		minutes = c.total_seconds() / 60
 		if minutes < 5:
+			self.Check02 = 'failed'
 			print(' :' + Fore.RED + ' Not Clean' + Fore.WHITE)
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
-		# print(f'    Recycle Bin: {modTime}')
-		# Explorer Start Time
-		# pid = self.getPID('explorer.exe')
-
 	@staticmethod
 	def mins_between(d1, d2):
+
 		d1 = datetime.strptime(d1, "%H-%M-%S")
 		d2 = datetime.strptime(d2, "%H-%M-%S")
 		return abs((d2 - d1).minutes)
@@ -147,6 +161,7 @@ class Screenshare(object):
 
 			if found:
 				for hack in found:
+					self.Check03 = 'failed'
 					print(f' :' + Fore.RED + f' Not Clean ({hack})' + Fore.WHITE)
 			else:
 				print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
@@ -156,6 +171,7 @@ class Screenshare(object):
 
 			if found:
 				for hack in found:
+					self.Check03 = 'failed'
 					print(f' :' + Fore.RED + f' Not Clean ({hack})' + Fore.WHITE)
 			else:
 				print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
@@ -170,6 +186,7 @@ class Screenshare(object):
 
 		if found:
 			for string in found:
+				self.Check04 = 'failed'
 				print(f' :' + Fore.RED + f' Not Clean ({cfg.dpsStrings[string]})' + Fore.WHITE)
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
@@ -181,6 +198,7 @@ class Screenshare(object):
 		found = [x for x in listdir(path) if isfile(f'{path}/{x}') if 'JNativeHook' in x and x.endswith('.dll')]
 
 		if found:
+			self.Check05 = 'failed'
 			print(f' : ' + Fore.RED + f' Not Clean')
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
@@ -200,6 +218,8 @@ class Screenshare(object):
 				if not os.path.isfile(string):
 					if string in explorerStrings:
 						filename = string.split('/')[-1]
+						self.Check06 = 'failed'
+						self.deletedFiles = self.deletedFiles + string + ', '
 						deleted[string] = {'filename': filename, 'method': '01'}
 
 		# Check 02 (Explorer PcaClient)
@@ -209,7 +229,9 @@ class Screenshare(object):
 				if 'trace' and 'pcaclient' in string:
 					path: str = [x for x in string.split(',') if '.exe' in x][0]
 					if not os.path.isfile(path):
+						self.deletedFiles = self.deletedFiles + path + ', '
 						filename = path.split('/')[-1]
+						self.Check06 = 'failed'
 						deleted[path] = {'filename': filename, 'method': '02'}
 
 		if deleted is True:
@@ -229,13 +251,25 @@ class Screenshare(object):
 			shutil.rmtree(temp)
 		exit()
 
+	def saveScan(self):
+		# print('saving scan...')
+		query = f'INSERT INTO Scans (ScanID, HWID, Check02, Check03, Check4, Check5, Check6, deletedFiles) VALUES ' \
+				f'({cfg.scanID}, {self.Check02}, {self.Check03}, {self.Check03}, {self.Check04}, {self.Check05}, {self.Check06}, )'
+		self.sqlCursor.execute(query)
+		self.sqlCnx.commit()
+
+
+
+
 
 sshare = Screenshare()
 sshare.asAdmin()
 sshare.mcProcess()
 sshare.dependencies()
+sshare.connectDatabase()
 
 print(f'{cfg.prefix} Starting Scan with ID: {cfg.scanID}\n')
+print(f'{cfg.prefix} HWID : {cfg.hwid}\n')
 
 print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #01')
 sshare.recordingCheck()
@@ -254,5 +288,6 @@ sshare.jnativehook()
 
 print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #06')
 sshare.executedDeleted()
+
 print('')
 sshare.end()

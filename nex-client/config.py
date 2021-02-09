@@ -1,14 +1,19 @@
-import colorama
-from colorama import Fore, Style
+# Start Imports
 import random
+import colorama
+import subprocess
 
-strings2Url = 'https://github.com/glmcdona/strings2/raw/master/x64/Release/strings.exe'
+from colorama import Fore, Style
+# End Imports
+
+stringsSoftware = 'https://github.com/glmcdona/strings2/raw/master/x64/Release/strings.exe'
 
 # For sending coloured text in chat
 colorama.init()
-prefix = Fore.BLUE+Style.BRIGHT+f'[NeX]'+Fore.WHITE
+prefix = Fore.BLUE + Style.BRIGHT + f'[NeX]' + Fore.WHITE
+hwid = str(subprocess.check_output('wmic csproduct get uuid')).split('\\r\\n')[1].strip('\\r').strip()
+scanID = "".join(random.choice('ABCDEFGHJKLMNPQRSTUVWXYZ1234567890') for i in range(1, 10))
 
-scanID = "".join(random.choice('ABCDEFGHJKLMNPQRSTUVWXYZ1234567890') for i in range(1, 5))
 
 # 'nvidia share':'Geforce Experience'
 recordingSoftwares = {'bdcam.exe': 'Bandicam',
