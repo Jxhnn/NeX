@@ -220,7 +220,7 @@ class Screenshare(object):
 					if string in explorerStrings:
 						filename = string.split('/')[-1]
 						self.Check06 = 'failed'
-						if self.deletedFiles is 'none':
+						if self.deletedFiles == 'none':
 							self.deletedFiles = string + ', '
 						else:
 							self.deletedFiles = self.deletedFiles + string + ', '
@@ -233,7 +233,7 @@ class Screenshare(object):
 				if 'trace' and 'pcaclient' in string:
 					path: str = [x for x in string.split(',') if '.exe' in x][0]
 					if not os.path.isfile(path):
-						if self.deletedFiles is 'none':
+						if self.deletedFiles == 'none':
 							self.deletedFiles = path + ', '
 						else:
 							self.deletedFiles = self.deletedFiles + path + ', '
