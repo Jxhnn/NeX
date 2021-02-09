@@ -35,7 +35,7 @@ class Screenshare(object):
 		self.Check04 = 'passed'
 		self.Check05 = 'passed'
 		self.Check06 = 'passed'
-		self.deletedFiles = None
+		self.deletedFiles = 'none'
 		colorama.init()
 
 	@staticmethod
@@ -220,7 +220,10 @@ class Screenshare(object):
 					if string in explorerStrings:
 						filename = string.split('/')[-1]
 						self.Check06 = 'failed'
-						self.deletedFiles = self.deletedFiles + string + ', '
+						if self.deletedFiles is 'none':
+							self.deletedFiles = string + ', '
+						else:
+							self.deletedFiles = self.deletedFiles + string + ', '
 						deleted[string] = {'filename': filename, 'method': '01'}
 
 		# Check 02 (Explorer PcaClient)
@@ -230,7 +233,10 @@ class Screenshare(object):
 				if 'trace' and 'pcaclient' in string:
 					path: str = [x for x in string.split(',') if '.exe' in x][0]
 					if not os.path.isfile(path):
-						self.deletedFiles = self.deletedFiles + path + ', '
+						if self.deletedFiles is 'none':
+							self.deletedFiles = path + ', '
+						else:
+							self.deletedFiles = self.deletedFiles + path + ', '
 						filename = path.split('/')[-1]
 						self.Check06 = 'failed'
 						deleted[path] = {'filename': filename, 'method': '02'}
