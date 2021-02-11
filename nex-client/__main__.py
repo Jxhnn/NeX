@@ -254,35 +254,35 @@ class Screenshare(object):
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
-	def checkHistory(self):
+	def checkScansHistory(self):
 
 		Result02 = False
 		Result03 = False
 		Result04 = False
 		Result05 = False
 
-		query = f'SELECT Check02 FROM Nex WHERE HWID = "{cfg.hwid}"'
+		query = f'SELECT Check02 FROM scans WHERE HWID = "{cfg.hwid}"'
 		self.sqlCursor.execute(query)
 		for Check02 in self.sqlCursor:
-			if Check02.find('failed'):
+			if str(Check02) == '(\'failed\',)':
 				Result02 = True
 
-		query = f'SELECT Check03 FROM Nex WHERE HWID = "{cfg.hwid}"'
+		query = f'SELECT Check03 FROM scans WHERE HWID = "{cfg.hwid}"'
 		self.sqlCursor.execute(query)
 		for Check03 in self.sqlCursor:
-			if Check03.find('failed'):
+			if str(Check03) == '(\'failed\',)':
 				Result03 = True
 
-		query = f'SELECT Check04 FROM Nex WHERE HWID = "{cfg.hwid}"'
+		query = f'SELECT Check04 FROM scans WHERE HWID = "{cfg.hwid}"'
 		self.sqlCursor.execute(query)
 		for Check04 in self.sqlCursor:
-			if Check04.find('failed'):
+			if str(Check04) == '(\'failed\',)':
 				Result04 = True
 
-		query = f'SELECT Check05 FROM Nex WHERE HWID = "{cfg.hwid}"'
+		query = f'SELECT Check05 FROM scans WHERE HWID = "{cfg.hwid}"'
 		self.sqlCursor.execute(query)
 		for Check05 in self.sqlCursor:
-			if Check05.find('failed'):
+			if str(Check05) == '(\'failed\',)':
 				Result05 = True
 		allResults = ''
 
@@ -295,9 +295,7 @@ class Screenshare(object):
 		if Result05 is True:
 			allResults = allResults + 'Check #05'
 
-		allResults = allResults + '.'
-
-		if allResults.find('Check'):
+		if 'Check' in allResults:
 			print(' :' + Fore.RED + f' Not Clean ({allResults})' + Fore.WHITE)
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
@@ -353,7 +351,10 @@ sshare.executedDeleted()
 
 if cfg.enableCheck07 is True:
 	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07')
-	sshare.checkHistory()
+	sshare.checkScansHistory()
+emse:
+	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07')
+	print(' :' + Fore.YELLOW + ' Skipped' + Fore.WHITE)
 
 sshare.saveScan()
 
