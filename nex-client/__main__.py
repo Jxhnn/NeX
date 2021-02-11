@@ -1,6 +1,6 @@
 # Start Imports
 import os
-import admin
+import admin as admin
 import shutil
 import psutil
 import requests
