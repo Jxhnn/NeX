@@ -91,8 +91,13 @@ class Screenshare(object):
 
 	def connectDatabase(self):
 		# Don't forget to set only read permissions to this user for more security.
-		self.sqlCnx = mysql.connector.connect(host=f'{cfg.host}', user=f'{cfg.user}', password=f'{cfg.password}', database=f'{cfg.database}')
-		self.sqlCursor = self.sqlCnx.cursor()
+		try:
+			self.sqlCnx = mysql.connector.connect(host=f'{cfg.host}', user=f'{cfg.user}', password=f'{cfg.password}', database=f'{cfg.database}')
+			self.sqlCursor = self.sqlCnx.cursor()
+		except:
+			print('Error connecting to the database.')
+			sshare.end()
+
 
 	# Gets PID of a process from name
 	@staticmethod
@@ -249,6 +254,54 @@ class Screenshare(object):
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
+	def checkHistory(self):
+
+		Result02 = False
+		Result03 = False
+		Result04 = False
+		Result05 = False
+
+		query = f'SELECT Check02 FROM Nex WHERE HWID = "{cfg.hwid}"'
+		self.sqlCursor.execute(query)
+		for Check02 in self.sqlCursor:
+			if Check02.find('failed'):
+				Result02 = True
+
+		query = f'SELECT Check03 FROM Nex WHERE HWID = "{cfg.hwid}"'
+		self.sqlCursor.execute(query)
+		for Check03 in self.sqlCursor:
+			if Check03.find('failed'):
+				Result03 = True
+
+		query = f'SELECT Check04 FROM Nex WHERE HWID = "{cfg.hwid}"'
+		self.sqlCursor.execute(query)
+		for Check04 in self.sqlCursor:
+			if Check04.find('failed'):
+				Result04 = True
+
+		query = f'SELECT Check05 FROM Nex WHERE HWID = "{cfg.hwid}"'
+		self.sqlCursor.execute(query)
+		for Check05 in self.sqlCursor:
+			if Check05.find('failed'):
+				Result05 = True
+		allResults = ''
+
+		if Result02 is True:
+			allResults = 'Check #02, '
+		if Result03 is True:
+			allResults = allResults + 'Check #03, '
+		if Result04 is True:
+			allResults = allResults + 'Check #04, '
+		if Result05 is True:
+			allResults = allResults + 'Check #05'
+
+		allResults = allResults + '.'
+
+		if allResults.find('Check'):
+			print(' :' + Fore.RED + f' Not Clean ({allResults})' + Fore.WHITE)
+		else:
+			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
+
 	@staticmethod
 	def end():
 		# input('\nScan finished\nPress enter to exit..')
@@ -268,7 +321,6 @@ class Screenshare(object):
 		
 		self.sqlCursor.execute(query)
 		self.sqlCnx.commit()
-
 
 
 sshare = Screenshare()
@@ -299,6 +351,9 @@ sshare.jnativehook()
 print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #06')
 sshare.executedDeleted()
 
+if cfg.enableCheck07 is True:
+	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07')
+	sshare.checkHistory()
 
 sshare.saveScan()
 
