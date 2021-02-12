@@ -18,9 +18,10 @@ from datetime import datetime
 # End Imports
 
 
-class Screenshare(object):
+# noinspection PyBroadException
+class Nex(object):
 	def __init__(self):
-		super(Screenshare, self).__init__()
+		super(Nex, self).__init__()
 		self.sqlCnx = None
 		self.sqlCursor = None
 		self.user_path = '/'.join(os.getcwd().split('\\', 3)[:3])
@@ -71,8 +72,7 @@ class Screenshare(object):
 		customClient = False
 		try:
 			detectCustom = mcprocess_info["username"]
-		except Exception as inst:
-			p = inst
+		except:
 			customClient = True
 
 		if customClient is True:
@@ -90,14 +90,14 @@ class Screenshare(object):
 			f.write(requests.get(cfg.stringsSoftware).content)
 
 	def connectDatabase(self):
+
 		# Don't forget to set only read permissions to this user for more security.
 		try:
 			self.sqlCnx = mysql.connector.connect(host=f'{cfg.host}', user=f'{cfg.user}', password=f'{cfg.password}', database=f'{cfg.database}')
 			self.sqlCursor = self.sqlCnx.cursor()
 		except:
 			print('Error connecting to the database.')
-			sshare.end()
-
+			Nex.end()
 
 	# Gets PID of a process from name
 	@staticmethod
@@ -130,7 +130,7 @@ class Screenshare(object):
 		if found:
 			for software in found:
 				print(' : ' + Fore.RED + f' Not Clean ({cfg.recordingSoftwares[software]})' + Fore.WHITE)
-				sshare.end()
+				Nex.end()
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
@@ -304,7 +304,7 @@ class Screenshare(object):
 	def end():
 		# input('\nScan finished\nPress enter to exit..')
 		input('\nPress enter to exit..')
-		temp = f'{sshare.drive_letter}/Windows/Temp/Astro'
+		temp = f'{Nex.drive_letter}/Windows/Temp/Astro'
 		if os.path.exists(temp):
 			shutil.rmtree(temp)
 		exit()
@@ -321,42 +321,42 @@ class Screenshare(object):
 		self.sqlCnx.commit()
 
 
-sshare = Screenshare()
+Nex = Nex()
 
-sshare.asAdmin()
-sshare.mcProcess()
-sshare.dependencies()
-sshare.connectDatabase()
+Nex.asAdmin()
+Nex.mcProcess()
+Nex.dependencies()
+Nex.connectDatabase()
 
 print(f'{cfg.prefix} Starting Scan with ID: {cfg.scanID}\n')
 # print(f'{cfg.prefix} HWID : {cfg.hwid}\n')
 
 print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #01')
-sshare.recordingCheck()
+Nex.recordingCheck()
 
 print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #02')
-sshare.modificationTimes()
+Nex.modificationTimes()
 
 print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #03')
-sshare.inInstance()
+Nex.inInstance()
 
 print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #04')
-sshare.outOfInstance()
+Nex.outOfInstance()
 
 print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #05')
-sshare.jnativehook()
+Nex.jnativehook()
 
 print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #06')
-sshare.executedDeleted()
+Nex.executedDeleted()
 
 if cfg.enableCheck07 is True:
 	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07')
-	sshare.checkScansHistory()
-emse:
+	Nex.checkScansHistory()
+else:
 	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07')
 	print(' :' + Fore.YELLOW + ' Skipped' + Fore.WHITE)
 
-sshare.saveScan()
+Nex.saveScan()
 
 print('')
-sshare.end()
+Nex.end()
