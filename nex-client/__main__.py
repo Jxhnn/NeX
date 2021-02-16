@@ -1,6 +1,6 @@
 # Start Imports
 import os
-import admin as admin
+import elevate as elevate
 import shutil
 import psutil
 import requests
@@ -40,9 +40,9 @@ class Nex(object):
 		colorama.init()
 
 	@staticmethod
-	def asAdmin():
-		if not admin.isUserAdmin():
-			admin.runAsAdmin(wait=False)
+	def asRoot():
+		if not elevate.isRootUser():
+			elevate.runRoot(wait=False)
 			exit()
 
 	# Finds minecraft process and gets info
@@ -57,7 +57,7 @@ class Nex(object):
 			pid = process.info['pid']
 			# print(f'{cfg.prefix} Minecraft found on PID: {pid}')
 		else:
-			input(f'Minecraft not found...\nPress enter to continue')
+			input('Minecraft not found...\nPress enter to continue')
 			quit()
 
 		# Get all command line arguments of process
@@ -92,12 +92,13 @@ class Nex(object):
 	def connectDatabase(self):
 
 		# Don't forget to set only read permissions to this user for more security.
-		try:
-			self.sqlCnx = mysql.connector.connect(host=f'{cfg.host}', user=f'{cfg.user}', password=f'{cfg.password}', database=f'{cfg.database}')
-			self.sqlCursor = self.sqlCnx.cursor()
-		except:
-			print('Error connecting to the database.')
-			Nex.end()
+		if cfg.enableDatabase is True:
+			try:
+				self.sqlCnx = mysql.connector.connect(host=f'{cfg.host}', user=f'{cfg.user}', password=f'{cfg.password}', database=f'{cfg.database}')
+				self.sqlCursor = self.sqlCnx.cursor()
+			except:
+				input('Cannot connect to the database...\nPress enter to continue')
+				quit()
 
 	# Gets PID of a process from name
 	@staticmethod
@@ -124,6 +125,7 @@ class Nex(object):
 	@staticmethod
 	def recordingCheck():
 
+		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #01')
 		tasks = str(subprocess.check_output('tasklist')).lower()
 		found = [x for x in cfg.recordingSoftwares if x in tasks]
 
@@ -137,6 +139,7 @@ class Nex(object):
 	# Checks modification/run times
 	def modificationTimes(self):
 
+		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #02')
 		SID = str(subprocess.check_output(f'wmic useraccount where name="{self.winUsername}" get sid')).split('\\r\\r\\n')[1]
 		recycle_bin_path = self.drive_letter+"/$Recycle.Bin/"+SID
 
@@ -161,6 +164,7 @@ class Nex(object):
 	# In Instance Checks
 	def inInstance(self):
 
+		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #03')
 		if self.lunarClient is True:
 			javawStrings = self.dump(self.javawPid)
 			found = [f'{cfg.lunarStrings[x]}' for x in javawStrings if x in cfg.lunarStrings]
@@ -184,6 +188,8 @@ class Nex(object):
 
 	# Out of instance checks
 	def outOfInstance(self):
+
+		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #04')
 		dpsPid = self.getPID('DPS', service=True)
 		strings = self.dump(dpsPid)
 		strings = ['.exe!'+x.split('!')[3] for x in strings if '.exe!' in x and x.startswith('!!')]
@@ -199,6 +205,8 @@ class Nex(object):
 
 	# Checks for JNativeHook based autoclicker
 	def jnativehook(self):
+
+		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #05')
 		path = f'{self.user_path}/AppData/Local/Temp'
 
 		found = [x for x in listdir(path) if isfile(f'{path}/{x}') if 'JNativeHook' in x and x.endswith('.dll')]
@@ -211,6 +219,8 @@ class Nex(object):
 
 	# Gets recently executed + deleted files
 	def executedDeleted(self):
+
+		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #06')
 		pcasvcPid = self.getPID('PcaSvc', service=True)
 		explorerPid = self.getPID('explorer.exe')
 		pcasvcStrings = self.dump(pcasvcPid)
@@ -255,6 +265,10 @@ class Nex(object):
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
 	def checkScansHistory(self):
+
+		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07')
+		if cfg.enableDatabase is False:
+			return
 
 		Result02 = False
 		Result03 = False
@@ -302,8 +316,9 @@ class Nex(object):
 
 	@staticmethod
 	def end():
-		# input('\nScan finished\nPress enter to exit..')
-		input('\nPress enter to exit..')
+
+		input('\nScan finished\nPress enter to exit..')
+		# input('\nPress enter to exit...')
 		temp = f'{Nex.drive_letter}/Windows/Temp/Astro'
 		if os.path.exists(temp):
 			shutil.rmtree(temp)
@@ -312,6 +327,9 @@ class Nex(object):
 	def saveScan(self):
 		if self.deletedFiles is None:
 			self.deletedFiles = 'none'
+
+		if cfg.enableDatabase is False:
+			return
 
 		query = f'INSERT INTO Scans (ScanID, HWID, Check02, Check03, Check04, Check05, Check06, deletedFiles) VALUES '
 		query = query + f'("{cfg.scanID}", "{cfg.hwid}", "{self.Check02}", "{self.Check03}", "{self.Check04}", '
@@ -323,40 +341,41 @@ class Nex(object):
 
 Nex = Nex()
 
-Nex.asAdmin()
+Nex.asRoot()
+Nex.connectDatabase()
+
+
 Nex.mcProcess()
 Nex.dependencies()
-Nex.connectDatabase()
+
 
 print(f'{cfg.prefix} Starting Scan with ID: {cfg.scanID}\n')
 # print(f'{cfg.prefix} HWID : {cfg.hwid}\n')
 
-print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #01')
+# Check #01
 Nex.recordingCheck()
 
-print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #02')
+# Check #02
 Nex.modificationTimes()
 
-print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #03')
+# Check #03
 Nex.inInstance()
 
-print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #04')
+# Check #04
 Nex.outOfInstance()
 
-print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #05')
+# Check #05
 Nex.jnativehook()
 
-print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #06')
+# Check #06
 Nex.executedDeleted()
 
-if cfg.enableCheck07 is True:
-	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07')
+# Check #07
+if cfg.enableCheck07 is True and cfg.enableDatabase is True:
 	Nex.checkScansHistory()
 else:
-	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07')
-	print(' :' + Fore.YELLOW + ' Skipped' + Fore.WHITE)
+	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07' + ' :' + Fore.YELLOW + ' Skipped' + Fore.WHITE)
+
 
 Nex.saveScan()
-
-print('')
 Nex.end()

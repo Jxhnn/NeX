@@ -17,6 +17,7 @@ scanID = "".join(random.choice('ABCDEFGHJKLMNPQRSTUVWXYZ1234567890') for i in ra
 enableCheck07 = True
 
 # Database credentials
+enableDatabase = False
 host = 'localhost'
 user = 'root'
 password = 'root'
