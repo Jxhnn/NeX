@@ -315,15 +315,15 @@ class Nex(object):
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
 	def registryCheck(self):
-		// TODO : Scan for injected dll into registry (path here)
+		# TODO : Scan for injected dll into registry (path here)
 		return
 
 	def movedFiles(self):
-		// TODO: Use fsutil to find moved executable files.
+		# TODO: Use fsutil to find moved executable files.
 		return
 
 	def renamedFiles(self):
-		// TODO: Use fsutil to find renamed executable files.
+		# TODO: Use fsutil to find renamed executable files.
 		return
 
 	@staticmethod
