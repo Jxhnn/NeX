@@ -314,6 +314,15 @@ class Nex(object):
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
+	def registryCheck(self):
+		return
+
+	def movedFiles(self):
+		return
+
+	def renamedFiles(self):
+		return
+
 	@staticmethod
 	def end():
 
