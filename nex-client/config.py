@@ -33,7 +33,9 @@ recordingSoftwares = {'bdcam.exe': 'Bandicam',
                       'fraps': 'Fraps',
                       'screencast': 'Screencast'}
 
-dpsStrings = {'.exe!2020/08/24:18:50:06': 'Generic Vape.gg Cheat',
+dpsStrings = {'.exe!2020/08/24:18:50:06': 'Vape Lite V3',
+              '.exe!2019/02/13:19:26:33': 'Vape Lite V3',
+              '.exe!2021/02/19:21:03:59': 'Vape Lite V3 (Signed)'
               '.exe!2019/03/14:20:01:24': 'OP AutoClicker',
               '.exe!2016/05/30:16:33:32': 'GS AutoClicker',
               '.exe!2016/04/18:16:56:55': 'AutoClicker',
