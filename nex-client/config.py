@@ -14,7 +14,7 @@ prefix = Fore.BLUE + Style.BRIGHT + f'[NeX]' + Fore.WHITE
 hwid = str(subprocess.check_output('wmic csproduct get uuid')).split('\\r\\n')[1].strip('\\r').strip()
 scanID = "".join(random.choice('ABCDEFGHJKLMNPQRSTUVWXYZ1234567890') for i in range(1, 10))
 
-enableCheck07 = True
+enableCheck07 = False
 
 # Database credentials
 enableDatabase = False
@@ -33,9 +33,9 @@ recordingSoftwares = {'bdcam.exe': 'Bandicam',
                       'fraps': 'Fraps',
                       'screencast': 'Screencast'}
 
-dpsStrings = {'.exe!2020/08/24:18:50:06': 'Generic Vape.gg',
-              '.exe!2019/02/13:19:26:33': 'Generic Vape.gg',
-              '.exe!2021/02/19:21:03:59': 'Generic Vape.gg'
+dpsStrings = {'.exe!2020/08/24:18:50:06': 'Vape Lite V3',
+              '.exe!2019/02/13:19:26:33': 'Vape Lite V3',
+              '.exe!2021/02/19:21:03:59': 'Vape Lite V3 (Signed)',
               '.exe!2019/03/14:20:01:24': 'OP AutoClicker',
               '.exe!2016/05/30:16:33:32': 'GS AutoClicker',
               '.exe!2016/04/18:16:56:55': 'AutoClicker',
@@ -48,6 +48,7 @@ dpsStrings = {'.exe!2020/08/24:18:50:06': 'Generic Vape.gg',
 
 
 javawStrings = {'p:Gohk': 'Drip #3',
+                'Z9ByByByByB' : 'Vape Lite',
                 'AVU%A': 'Drip #2',
                 '*luPms': 'Drip #1',
                 'net/impactclient': 'Impact Client',
@@ -679,5 +680,7 @@ javawStrings = {'p:Gohk': 'Drip #3',
                 'modules.smoothaim': 'Illegal Modifications',
                 'Cucklord inside!': 'Anti SS Tool'}
 
-# TOTO : Find other strings, I think that these won't work :(
-lunarStrings = {' d^y>0iT': 'Vape Lite #1', 'Hu.-': 'Vape Lite #2', '85I%': 'Vape Lite #3'}
+# I only give 1 strings but I have more in my pocket :)
+lunar18Strings = {'QQY[a)921' : 'Vape Lite'}
+minecraft17Strings = {'Jqiiiiaiiyqqii' : 'Vape Lite'}
+minecraft18Strings = {'t92y2y2' : 'Vape Lite'}

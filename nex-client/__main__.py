@@ -69,6 +69,10 @@ class Nex(object):
 		self.javawPid = pid
 		self.mcPath = mcprocess_info["version"]
 
+		print(mcprocess_info["version"])
+		print(mcprocess_info["version"])
+		print(mcprocess_info["version"])
+
 		customClient = False
 		try:
 			detectCustom = mcprocess_info["username"]
@@ -169,8 +173,15 @@ class Nex(object):
 			javawStrings = self.dump(self.javawPid)
 			found = [f'{cfg.lunarStrings[x]}' for x in javawStrings if x in cfg.lunarStrings]
 
+			if '1.8' in self.mcPath:
+				foundHeuristic = [f'{cfg.lunar18Strings[x]}' for x in javawStrings if x in cfg.lunar18Strings]
+
 			if found:
 				for hack in found:
+					self.Check03 = 'failed'
+					print(f' :' + Fore.RED + f' Not Clean ({hack})' + Fore.WHITE)
+			elif foundHeuristic:
+				for hack in foundHeuristic:
 					self.Check03 = 'failed'
 					print(f' :' + Fore.RED + f' Not Clean ({hack})' + Fore.WHITE)
 			else:
@@ -178,9 +189,18 @@ class Nex(object):
 		else:
 			javawStrings = self.dump(self.javawPid)
 			found = [f'{cfg.javawStrings[x]}' for x in javawStrings if x in cfg.javawStrings]
+			
+			if '1.8' in self.mcPath:
+				foundHeuristic = [f'{cfg.minecraft18Strings[x]}' for x in javawStrings if x in cfg.minecraft18Strings]
+			elif '1.7' in self.mcPath:
+				foundHeuristic = [f'{cfg.minecraft17Strings[x]}' for x in javawStrings if x in cfg.minecraft17Strings]
 
 			if found:
 				for hack in found:
+					self.Check03 = 'failed'
+					print(f' :' + Fore.RED + f' Not Clean ({hack})' + Fore.WHITE)
+			elif foundHeuristic:
+				for hack in foundHeuristic:
 					self.Check03 = 'failed'
 					print(f' :' + Fore.RED + f' Not Clean ({hack})' + Fore.WHITE)
 			else:
@@ -246,7 +266,7 @@ class Nex(object):
 			for string in explorerStrings:
 				string = string.lower()
 				if 'trace' and 'pcaclient' in string:
-					path: str = [x for x in string.split(',') if '.exe' in x][0]
+					path = [x for x in string.split(",")][0]
 					if not os.path.isfile(path):
 						if self.deletedFiles == 'none':
 							self.deletedFiles = path + ', '
@@ -313,18 +333,6 @@ class Nex(object):
 			print(' :' + Fore.RED + f' Not Clean ({allResults})' + Fore.WHITE)
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
-
-	def registryCheck(self):
-		# TODO : Scan for injected dll into registry (path here)
-		return
-
-	def movedFiles(self):
-		# TODO: Use fsutil to find moved executable files.
-		return
-
-	def renamedFiles(self):
-		# TODO: Use fsutil to find renamed executable files.
-		return
 
 	@staticmethod
 	def end():
