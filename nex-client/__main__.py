@@ -69,10 +69,6 @@ class Nex(object):
 		self.javawPid = pid
 		self.mcPath = mcprocess_info["version"]
 
-		print(mcprocess_info["version"])
-		print(mcprocess_info["version"])
-		print(mcprocess_info["version"])
-
 		customClient = False
 		try:
 			detectCustom = mcprocess_info["username"]
@@ -261,26 +257,23 @@ class Nex(object):
 							self.deletedFiles = self.deletedFiles + string + ', '
 						deleted[string] = {'filename': filename, 'method': '01'}
 
-		# Check 02 (Explorer PcaClient)
 		if explorerStrings:
 			for string in explorerStrings:
 				string = string.lower()
 				if 'trace' and 'pcaclient' in string:
-					path = [x for x in string.split(",")][0]
-					if not os.path.isfile(path):
-						if self.deletedFiles == 'none':
-							self.deletedFiles = path + ', '
-						else:
-							self.deletedFiles = self.deletedFiles + path + ', '
-						filename = path.split('/')[-1]
-						self.Check06 = 'failed'
-						deleted[path] = {'filename': filename, 'method': '02'}
+					try:
+						path = [x for x in string.split(',') if '.exe' in x][0]
+						if not os.path.isfile(path):
+							filename = path.split('/')[-1]
+							deleted[path] = {'filename':filename, 'method':'02'}
+					except:
+						print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
-		if deleted is True:
+		if deleted:
 			print(' :' + Fore.RED + ' Not Clean')
 			print('')
 			for path in deleted:
-				print(f' - {path}' + Fore.WHITE)
+				print(f'	- {path}' + Fore.WHITE)
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
