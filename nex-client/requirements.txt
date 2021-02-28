@@ -2,3 +2,4 @@ psutil
 colorama
 pywin32
 mysql-connector-python
+requests
