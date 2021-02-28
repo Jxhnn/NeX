@@ -245,9 +245,10 @@ class Nex(object):
 		deleted = {}
 
 		for string in pcasvcStrings:
-			string = string.lower()
-			if string.startswith(self.drive_letter.lower()) and string.endswith('.exe'):
+			# string = string.lower()
+			if string.startswith(self.drive_letter) and string.endswith('.exe'):
 				if not os.path.isfile(string):
+					
 					if string in explorerStrings:
 						filename = string.split('/')[-1]
 						self.Check06 = 'failed'
@@ -255,7 +256,7 @@ class Nex(object):
 							self.deletedFiles = string + ', '
 						else:
 							self.deletedFiles = self.deletedFiles + string + ', '
-						deleted[string] = {'filename': filename, 'method': '01'}
+						deleted[string] = {'filename': string, 'method': '01'}
 
 		if explorerStrings:
 			for string in explorerStrings:
@@ -265,7 +266,7 @@ class Nex(object):
 						path = [x for x in string.split(',') if '.exe' in x][0]
 						if not os.path.isfile(path):
 							filename = path.split('/')[-1]
-							deleted[path] = {'filename':filename, 'method':'02'}
+							deleted[path] = {'filename':path, 'method':'02'}
 					except:
 						print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
@@ -273,9 +274,11 @@ class Nex(object):
 			print(' :' + Fore.RED + ' Not Clean')
 			print('')
 			for path in deleted:
-				print(f'	- {path}' + Fore.WHITE)
+				print(f'	- {path}' + Fore.RED)
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
+
+		print('')
 
 	def checkScansHistory(self):
 
