@@ -164,10 +164,11 @@ class Nex(object):
 	# In Instance Checks
 	def inInstance(self):
 
+		global foundHeuristic
 		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #03')
 		if self.lunarClient is True:
 			javawStrings = self.dump(self.javawPid)
-			found = [f'{cfg.lunarStrings[x]}' for x in javawStrings if x in cfg.lunarStrings]
+			found = [f'{cfg.javawStrings[x]}' for x in javawStrings if x in cfg.javawStrings]
 
 			if '1.8' in self.mcPath:
 				foundHeuristic = [f'{cfg.lunar18Strings[x]}' for x in javawStrings if x in cfg.lunar18Strings]
@@ -185,7 +186,7 @@ class Nex(object):
 		else:
 			javawStrings = self.dump(self.javawPid)
 			found = [f'{cfg.javawStrings[x]}' for x in javawStrings if x in cfg.javawStrings]
-			
+
 			if '1.8' in self.mcPath:
 				foundHeuristic = [f'{cfg.minecraft18Strings[x]}' for x in javawStrings if x in cfg.minecraft18Strings]
 			elif '1.7' in self.mcPath:
@@ -248,7 +249,7 @@ class Nex(object):
 			# string = string.lower()
 			if string.startswith(self.drive_letter) and string.endswith('.exe'):
 				if not os.path.isfile(string):
-					
+
 					if string in explorerStrings:
 						filename = string.split('/')[-1]
 						self.Check06 = 'failed'
@@ -266,9 +267,9 @@ class Nex(object):
 						path = [x for x in string.split(',') if '.exe' in x][0]
 						if not os.path.isfile(path):
 							filename = path.split('/')[-1]
-							deleted[path] = {'filename':path, 'method':'02'}
+							deleted[path] = {'filename' : path, 'method' : '02'}
 					except:
-						print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
+						continue
 
 		if deleted:
 			print(' :' + Fore.RED + ' Not Clean')
@@ -350,9 +351,25 @@ class Nex(object):
 		query = f'INSERT INTO Scans (ScanID, HWID, Check02, Check03, Check04, Check05, Check06, deletedFiles) VALUES '
 		query = query + f'("{cfg.scanID}", "{cfg.hwid}", "{self.Check02}", "{self.Check03}", "{self.Check04}", '
 		query = query + f'"{self.Check05}", "{self.Check06}", "{self.deletedFiles}")'
-		
+
 		self.sqlCursor.execute(query)
 		self.sqlCnx.commit()
+
+
+currentPin = 00000
+try:
+	currentPin = int(input('Enter the pin to start : '))
+except:
+	input('An error has occured...\nPress enter to exit')
+	quit()
+
+
+payload = {'pin': currentPin}
+url = 'http://www.auth.atome.cc/index.php'
+res = requests.post(url, data=payload)
+if 'verified' not in res.text:
+	input('An error has occured...\nPress enter to exit')
+	quit()
 
 
 Nex = Nex()
