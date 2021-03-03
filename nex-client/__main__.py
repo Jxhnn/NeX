@@ -271,6 +271,19 @@ class Nex(object):
 					except:
 						continue
 
+		# New method to detect deleted dll files.
+		if explorerStrings:
+			for string in explorerStrings:
+				if string.startswith(self.drive_letter) and string.endswith('.dll'):
+					# print(string)
+					if not os.path.exists(string) and not 'system32' in string:
+						self.Check06 = 'failed'
+						if self.deletedFiles == 'none':
+							self.deletedFiles = string + ', '
+						else:
+							self.deletedFiles = self.deletedFiles + string + ', '
+						deleted[string] = {'filename': string, 'method': '03'}
+
 		if deleted:
 			print(' :' + Fore.RED + ' Not Clean')
 			print('')
