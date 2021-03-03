@@ -1,13 +1,13 @@
  
-<form method="GET">
+<!-- <form method="GET">
 	<input type="text" value="Pin" name="pin" id="pin" />
-	<!-- <input type="text" value="key" name="hwid" id="hwid" /> -->
+	<input type="text" value="key" name="hwid" id="hwid" />
 	<input type="submit" value="Activate !" name="test"  />
-</form>
+</form> -->
 
 
 <?php
-if(isset($_GET['test'])) {
+if (true) {
 	$key = $_GET['pin'];
 	$filename = 'list.txt';
 	

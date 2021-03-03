@@ -373,9 +373,9 @@ Nex = Nex()
 Nex.asRoot()
 
 try:
-	currentPin = int(input('Enter the pin to start : '))
+	currentPin = input('Enter the pin to start : ')
 
-	url = f'https://auth2.atome.cc/index.php?pin={currentPin}'
+	print(url)
 	r = requests.get(url)
 
 	if 'verified' not in r.text:
