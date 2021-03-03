@@ -10,18 +10,21 @@
 if (true) {
 	$key = $_GET['pin'];
 	$filename = 'list.txt';
+
+	if (empty($_GET['pin'])) {
+		return;
+	}
 	
-	$lines = file($filename); // reads a file into a array with the lines
+	$lines = file($filename);
 	$output = '';
 
 	foreach ($lines as $line) {
-		if (!strstr($line, $key . "\n")) {
+		if (strcmp($line, $key . "\n") !== 0) {
 			$output .= $line;
 		} else {
-			// echo "<h1>" . $line . "</h1>";
 			// PIN EXIST !!!!!
 			echo "verified";
-			// Now add a new random unique pin
+			// Now generate a new random unique pin
 			$newPin = rand(10000, 99999);
 
 			// Check if this pin already exist.

@@ -1,6 +1,6 @@
  
 <form method="POST">
-	<input type="text" value="" type="password" name="passwrd" id="passwrd" />
+	<input type="password" svalue=""  name="passwrd" id="passwrd" />
 	<input type="submit" value="Get a pin !" name="submit"  />
 </form>
 
