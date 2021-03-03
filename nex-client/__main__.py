@@ -356,25 +356,27 @@ class Nex(object):
 		self.sqlCnx.commit()
 
 
-currentPin = 00000
+Nex = Nex()
+Nex.asRoot()
+
 try:
 	currentPin = int(input('Enter the pin to start : '))
+
+	url = f'https://auth2.atome.cc/index.php?pin={currentPin}'
+	r = requests.get(url)
+
+	if 'verified' not in r.text:
+		quit()
 except:
 	input('An error has occured...\nPress enter to exit')
 	quit()
 
 
-payload = {'pin': currentPin}
-url = 'http://www.auth.atome.cc/index.php'
-res = requests.post(url, data=payload)
-if 'verified' not in res.text:
-	input('An error has occured...\nPress enter to exit')
-	quit()
+
+os.system('cls')
 
 
-Nex = Nex()
 
-Nex.asRoot()
 Nex.connectDatabase()
 
 

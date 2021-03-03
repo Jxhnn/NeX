@@ -1,0 +1,20 @@
+RewriteEngine On
+RewriteBase /
+
+# Protect the htaccess file
+<Files .htaccess>
+Order Allow,Deny
+Deny from all
+</Files>
+
+# Protect list.txt
+<Files ./list.txt>
+Order Allow,Deny
+Deny from all
+</Files>
+
+# Disable directory browsing
+Options All -Indexes
+
+#Alternate default index pages
+DirectoryIndex index.php index.html
