@@ -1,5 +1,6 @@
 # Start Imports
 import os
+import re
 import elevate as elevate
 import shutil
 import psutil
@@ -113,6 +114,21 @@ class Nex(object):
 			pid = [p.pid for p in psutil.process_iter(attrs=['pid', 'name']) if name == p.name()][0]
 			return pid
 
+	# Get process start time
+	def proc_starttime(self, pid):
+		# https://gist.github.com/westhood/1073585
+		p = re.compile(r"^btime (\d+)$", re.MULTILINE)
+		with open("/proc/stat") as f:
+			m = p.search(f.read())
+			btime = int(m.groups()[0])
+
+		clk_tck = os.sysconf(os.sysconf_names["SC_CLK_TCK"])
+		with open("/proc/%d/stat" % pid) as f:
+			stime = int(f.read().split()[21]) / clk_tck
+
+		return datetime.fromtimestamp(btime + stime)
+
+
 	# Gets/Dumps strings via a PID
 	def dump(self, pid):
 		cmd = f'{self.drive_letter}/Windows/Temp/Astro/strings2.exe -pid {pid} -raw -nh'
@@ -144,11 +160,22 @@ class Nex(object):
 		recycle_bin_path = self.drive_letter+"/$Recycle.Bin/"+SID
 
 		# Recycle bin modified time check
-		a = datetime.fromtimestamp(os.path.getmtime(recycle_bin_path))
-		b = datetime.now()
-		c = b - a
-		minutes = c.total_seconds() / 60
-		if minutes < 5:
+		recyclebinTime = datetime.fromtimestamp(os.path.getmtime(recycle_bin_path))
+		currentTime = datetime.now()
+		binDiffTime = currentTime - recyclebinTime
+		minutes = binDiffTime.total_seconds() / 60
+
+		explorerPid = self.getPID('explorer.exe')
+		p = psutil.Process(explorerPid)
+		explorerTime = datetime.fromtimestamp(p.create_time())
+
+
+		explorerDiffTime = currentTime - explorerTime
+		minutes2 = explorerDiffTime.total_seconds() / 60
+		print(minutes2)
+
+
+		if minutes2 < 300:
 			self.Check02 = 'failed'
 			print(' :' + Fore.RED + ' Not Clean' + Fore.WHITE)
 		else:
@@ -267,22 +294,9 @@ class Nex(object):
 						path = [x for x in string.split(',') if '.exe' in x][0]
 						if not os.path.isfile(path):
 							filename = path.split('/')[-1]
-							deleted[path] = {'filename' : path, 'method' : '02'}
+							deleted[path] = {'filename': path, 'method': '02'}
 					except:
 						continue
-
-		# New method to detect deleted dll files.
-		if explorerStrings:
-			for string in explorerStrings:
-				if string.startswith(self.drive_letter) and string.endswith('.dll'):
-					# print(string)
-					if not os.path.exists(string) and not 'system32' in string:
-						self.Check06 = 'failed'
-						if self.deletedFiles == 'none':
-							self.deletedFiles = string + ', '
-						else:
-							self.deletedFiles = self.deletedFiles + string + ', '
-						deleted[string] = {'filename': string, 'method': '03'}
 
 		if deleted:
 			print(' :' + Fore.RED + ' Not Clean')
@@ -294,9 +308,37 @@ class Nex(object):
 
 		print('')
 
+	# New method to detect deleted dll files.
+	def deletedDLL(self):
+		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07')
+
+		dllFiles = {}
+		explorerPid = self.getPID('explorer.exe')
+		explorerStrings = self.dump(explorerPid)
+
+		if explorerStrings:
+			for string in explorerStrings:
+				if string.startswith(self.drive_letter) and string.endswith('.dll'):
+					if not os.path.exists(string) and 'C:\Windows\system32' not in string:
+						self.Check06 = 'failed'
+						if self.deletedFiles == 'none':
+							self.deletedFiles = string + ', '
+						else:
+							self.deletedFiles = self.deletedFiles + string + ', '
+						dllFiles[string] = {'filename': string, 'method': '03'}
+
+		if dllFiles is True:
+			print(' :' + Fore.RED + ' Not Clean')
+			print('')
+			for path in dllFiles:
+				print(f'	- {path}' + Fore.RED)
+		else:
+			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
+		print('')
+
 	def checkScansHistory(self):
 
-		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07')
+		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #08')
 		if cfg.enableDatabase is False:
 			return
 
@@ -372,26 +414,20 @@ class Nex(object):
 Nex = Nex()
 Nex.asRoot()
 
-try:
-	currentPin = input('Enter the pin to start : ')
-	url = f'https://auth2.atome.cc/index.php?pin={currentPin}'
-	r = requests.get(url)
+if cfg.disableAuth is False:
+	try:
+		currentPin = input('Enter the pin to start : ')
+		url = f'https://auth2.atome.cc/index.php?pin={currentPin}'
+		r = requests.get(url)
 
-	if 'verified' not in r.text:
+		if 'verified' not in r.text:
+			quit()
+	except:
+		input('An error has occured...\nPress enter to exit')
 		quit()
-except:
-	input('An error has occured...\nPress enter to exit')
-	quit()
-
-
 
 os.system('cls')
-
-
-
 Nex.connectDatabase()
-
-
 Nex.mcProcess()
 Nex.dependencies()
 
@@ -418,10 +454,13 @@ Nex.jnativehook()
 Nex.executedDeleted()
 
 # Check #07
-if cfg.enableCheck07 is True and cfg.enableDatabase is True:
+Nex.deletedDLL()
+
+# Check #08
+if cfg.enableCheck08 is True and cfg.enableDatabase is True:
 	Nex.checkScansHistory()
 else:
-	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07' + ' :' + Fore.YELLOW + ' Skipped' + Fore.WHITE)
+	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #08' + ' :' + Fore.YELLOW + ' Skipped' + Fore.WHITE)
 
 
 Nex.saveScan()

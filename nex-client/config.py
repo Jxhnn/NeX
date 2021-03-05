@@ -14,7 +14,8 @@ prefix = Fore.BLUE + Style.BRIGHT + f'[NeX]' + Fore.WHITE
 hwid = str(subprocess.check_output('wmic csproduct get uuid')).split('\\r\\n')[1].strip('\\r').strip()
 scanID = "".join(random.choice('ABCDEFGHJKLMNPQRSTUVWXYZ1234567890') for i in range(1, 10))
 
-enableCheck07 = False
+enableCheck08 = False
+disableAuth = True
 
 # Database credentials
 enableDatabase = False
