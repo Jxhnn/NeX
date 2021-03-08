@@ -84,7 +84,7 @@ class Nex(object):
 
 	# Downloads all necessary files
 	def dependencies(self):
-		path = f'{self.drive_letter}/Windows/Temp/Astro'
+		path = f'{self.drive_letter}/Windows/Temp/Nex'
 		if not os.path.exists(path):
 			os.mkdir(path)
 		with open(f'{path}/strings2.exe', 'wb') as f:
@@ -115,7 +115,8 @@ class Nex(object):
 			return pid
 
 	# Get process start time
-	def proc_starttime(self, pid):
+	@staticmethod
+	def proc_starttime(pid):
 		# https://gist.github.com/westhood/1073585
 		p = re.compile(r"^btime (\d+)$", re.MULTILINE)
 		with open("/proc/stat") as f:
@@ -128,10 +129,9 @@ class Nex(object):
 
 		return datetime.fromtimestamp(btime + stime)
 
-
 	# Gets/Dumps strings via a PID
 	def dump(self, pid):
-		cmd = f'{self.drive_letter}/Windows/Temp/Astro/strings2.exe -pid {pid} -raw -nh'
+		cmd = f'{self.drive_letter}/Windows/Temp/Nex/strings2.exe -pid {pid} -raw -nh'
 		strings = str(subprocess.check_output(cmd)).replace('\\\\', "/")
 		strings = list(set(strings.split("\\r\\n")))
 
@@ -169,11 +169,8 @@ class Nex(object):
 		p = psutil.Process(explorerPid)
 		explorerTime = datetime.fromtimestamp(p.create_time())
 
-
 		explorerDiffTime = currentTime - explorerTime
 		minutes2 = explorerDiffTime.total_seconds() / 60
-		print(minutes2)
-
 
 		if minutes2 < 300:
 			self.Check02 = 'failed'
@@ -319,7 +316,7 @@ class Nex(object):
 		if explorerStrings:
 			for string in explorerStrings:
 				if string.startswith(self.drive_letter) and string.endswith('.dll'):
-					if not os.path.exists(string) and 'C:\Windows\system32' not in string:
+					if not os.path.exists(string) and 'C:\Windows\system32' or 'C:\Windows\System32' not in string:
 						self.Check06 = 'failed'
 						if self.deletedFiles == 'none':
 							self.deletedFiles = string + ', '
@@ -391,7 +388,7 @@ class Nex(object):
 
 		input('\nScan finished\nPress enter to exit..')
 		# input('\nPress enter to exit...')
-		temp = f'{Nex.drive_letter}/Windows/Temp/Astro'
+		temp = f'{Nex.drive_letter}/Windows/Temp/Nex'
 		if os.path.exists(temp):
 			shutil.rmtree(temp)
 		exit()
