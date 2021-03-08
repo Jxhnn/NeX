@@ -316,7 +316,7 @@ class Nex(object):
 		if explorerStrings:
 			for string in explorerStrings:
 				if string.startswith(self.drive_letter) and string.endswith('.dll'):
-					if not os.path.exists(string) and 'C:\Windows\system32' or 'C:\Windows\System32' not in string:
+					if not os.path.exists(string) and 'C:\Windows\system32' not in string and 'C:\Windows\System32' not in string:
 						self.Check06 = 'failed'
 						if self.deletedFiles == 'none':
 							self.deletedFiles = string + ', '
