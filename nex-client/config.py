@@ -15,7 +15,7 @@ hwid = str(subprocess.check_output('wmic csproduct get uuid')).split('\\r\\n')[1
 scanID = "".join(random.choice('ABCDEFGHJKLMNPQRSTUVWXYZ1234567890') for i in range(1, 10))
 
 enableCheck08 = False
-disableAuth = True
+disableAuth = False
 
 # Database credentials
 enableDatabase = False

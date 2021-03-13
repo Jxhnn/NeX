@@ -1,13 +1,15 @@
 # Start Imports
 import os
 import re
-import elevate as elevate
+import time
 import shutil
 import psutil
 import requests
 import colorama
 import subprocess
+import bimpy as bp
 import config as cfg
+import elevate as elevate
 # mysql-connector-python
 import mysql.connector
 
@@ -15,14 +17,16 @@ from sys import exit
 from os import listdir
 from colorama import Fore
 from os.path import isfile
+from threading import Thread
 from datetime import datetime
+from bimpy.utils import help_marker
 # End Imports
 
 
 # noinspection PyBroadException
-class Nex(object):
+class Nex(bp.App):
 	def __init__(self):
-		super(Nex, self).__init__()
+		super(Nex, self).__init__(height=300, width=800, title='Nex Anticheat System')
 		self.sqlCnx = None
 		self.sqlCursor = None
 		self.user_path = '/'.join(os.getcwd().split('\\', 3)[:3])
@@ -32,17 +36,33 @@ class Nex(object):
 		self.mcPath = ''
 		self.lunarClient = False
 
+		self.recordingResult = ''
+		self.inInstanceCheats = ''
+		self.outCheats = ''
 		self.Check02 = 'passed'
 		self.Check03 = 'passed'
 		self.Check04 = 'passed'
 		self.Check05 = 'passed'
 		self.Check06 = 'passed'
-		self.deletedFiles = 'none'
+		self.Check07 = 'passed'
+		self.deletedFiles = ''
+
+		self.s = bp.String()
+		self.f = bp.Float()
+		self.barValue = 0
+		self.verified = False
+		self.cancel = False
+		self.startedScan = False
+		self.lastCheck = ''
+		self.currentAction = bp.String()
+
+		bp.push_style_var(bp.Style.FrameRounding, 10)
+		bp.load_fonts(size=20)
 		colorama.init()
 
 	@staticmethod
 	def asRoot():
-		if not elevate.isRootUser():
+		if elevate.isRootUser():
 			elevate.runRoot(wait=False)
 			exit()
 
@@ -82,6 +102,102 @@ class Nex(object):
 			else:
 				self.lunarClient = False
 
+	def on_update(self):
+
+		if self.verified is False:
+			if self.cancel is False:
+				bp.new_line()
+				bp.new_line()
+				bp.new_line()
+				bp.text('       Enter pin :')
+				bp.same_line()
+
+				bp.input_text('', self.s, 200, bp.InputTextFlags.Password)
+				# bp.input_text('', self.s, 200)
+				if cfg.disableAuth is False:
+					if len(self.s.value) == 5:
+						if self.lastCheck != self.s.value:
+							try:
+								url = f'https://auth2.atome.cc/index.php?pin={self.s.value}'
+								r = requests.get(url)
+
+								if 'verified' not in r.text:
+									self.cancel = True
+								else:
+									self.verified = True
+
+							except:
+								self.cancel = True
+
+						self.lastCheck = self.s.value
+				else:
+					self.verified = True
+			else:
+				bp.new_line()
+				bp.new_line()
+				bp.new_line()
+				bp.text('An error has occured. If this error persist, try to contact the staff.')
+		elif self.cancel is False:
+			bp.new_line()
+			bp.new_line()
+			bp.text(self.currentAction.value)
+			bp.progress_bar(self.barValue)
+
+			if len(self.recordingResult) > 2:
+				bp.text('Record software found')
+				bp.same_line()
+				help_marker(self.recordingResult + ' has been found')
+
+			if 'failed' in self.Check02:
+				bp.text('Illegal modifications times found')
+				bp.same_line()
+				help_marker('The explorer process has been restarted in the last 5 minutes')
+
+			if 'failed' in self.Check03:
+				bp.text('In game cheat found.')
+				bp.same_line()
+				help_marker('Cheat : ' + self.inInstanceCheats)
+
+			if 'failed' in self.Check04:
+				bp.text('External cheat found')
+				bp.same_line()
+				help_marker('Cheat : ' + self.outCheats)
+
+			if 'failed' in self.Check05:
+				bp.text('JNativeHook found')
+
+			if 'failed' in self.Check06:
+				bp.text('Executed deleted files found')
+				bp.same_line()
+				help_marker(self.deletedFiles)
+
+			if 'failed' in self.Check07:
+				bp.text('Executed library files found')
+				bp.same_line()
+				help_marker(self.deletedDLLs)
+
+
+			if self.startedScan is False:
+				self.startedScan = True
+				print('starting scan :D')
+				p = Thread(target=self.doAnything, args=(self, ))
+				p.daemon = False
+				p.start()
+		else:
+			bp.new_line()
+			bp.new_line()
+			bp.new_line()
+			bp.text('An error has occured. If this error persist, try to contact the staff.')
+
+
+
+	def addPercentageToProgress(self, perc):
+		added = 0
+
+		for i in range(0, perc * 10):
+			time.sleep(0.004)
+			self.barValue = self.barValue + 0.001
+
 	# Downloads all necessary files
 	def dependencies(self):
 		path = f'{self.drive_letter}/Windows/Temp/Nex'
@@ -89,17 +205,54 @@ class Nex(object):
 			os.mkdir(path)
 		with open(f'{path}/strings2.exe', 'wb') as f:
 			f.write(requests.get(cfg.stringsSoftware).content)
+		self.currentAction.value = 'Downloading dependencies'
+		# Thread(target=self.addPercentageToProgress, args=(self, 10)).start()
+		self.addPercentageToProgress(10)
 
 	def connectDatabase(self):
-
 		# Don't forget to set only read permissions to this user for more security.
 		if cfg.enableDatabase is True:
 			try:
 				self.sqlCnx = mysql.connector.connect(host=f'{cfg.host}', user=f'{cfg.user}', password=f'{cfg.password}', database=f'{cfg.database}')
 				self.sqlCursor = self.sqlCnx.cursor()
 			except:
+				self.cancel = True
 				input('Cannot connect to the database...\nPress enter to continue')
 				quit()
+
+	@staticmethod
+	def doAnything(self):
+		self.connectDatabase()
+
+		self.mcProcess()
+		self.dependencies()
+
+		# Check #01
+		self.recordingCheck()
+
+		# Check #02
+		self.modificationTimes()
+
+		# Check #03
+		self.inInstance()
+
+		# Check #04
+		self.outOfInstance()
+
+		# Check #05
+		self.jnativehook()
+
+		# Check #06
+		self.executedDeleted()
+
+		# Check #07
+		self.deletedDLL()
+
+		# Check #08
+		if cfg.enableCheck08 is True:
+			self.checkScansHistory()
+
+		return True
 
 	# Gets PID of a process from name
 	@staticmethod
@@ -138,9 +291,9 @@ class Nex(object):
 		return strings
 
 	# Checking for recording software
-	@staticmethod
-	def recordingCheck():
-
+	def recordingCheck(self):
+		self.addPercentageToProgress(11)
+		self.currentAction.value = 'Checking for recording software'
 		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #01')
 		tasks = str(subprocess.check_output('tasklist')).lower()
 		found = [x for x in cfg.recordingSoftwares if x in tasks]
@@ -148,13 +301,18 @@ class Nex(object):
 		if found:
 			for software in found:
 				print(' : ' + Fore.RED + f' Not Clean ({cfg.recordingSoftwares[software]})' + Fore.WHITE)
+				self.barValue.value = 1
+				self.recordingResult = cfg.recordingSoftwares[software]
+
 				Nex.end()
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
+
 	# Checks modification/run times
 	def modificationTimes(self):
-
+		self.addPercentageToProgress(11)
+		self.currentAction.value = 'Checking modification time.'
 		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #02')
 		SID = str(subprocess.check_output(f'wmic useraccount where name="{self.winUsername}" get sid')).split('\\r\\r\\n')[1]
 		recycle_bin_path = self.drive_letter+"/$Recycle.Bin/"+SID
@@ -187,8 +345,10 @@ class Nex(object):
 
 	# In Instance Checks
 	def inInstance(self):
+		self.currentAction.value = 'Checking for in game modifications'
+		self.addPercentageToProgress(6)
 
-		global foundHeuristic
+		foundHeuristic = []
 		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #03')
 		if self.lunarClient is True:
 			javawStrings = self.dump(self.javawPid)
@@ -200,10 +360,12 @@ class Nex(object):
 			if found:
 				for hack in found:
 					self.Check03 = 'failed'
+					self.inInstanceCheats = hack
 					print(f' :' + Fore.RED + f' Not Clean ({hack})' + Fore.WHITE)
 			elif foundHeuristic:
 				for hack in foundHeuristic:
 					self.Check03 = 'failed'
+					self.inInstanceCheats = hack
 					print(f' :' + Fore.RED + f' Not Clean ({hack})' + Fore.WHITE)
 			else:
 				print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
@@ -219,17 +381,21 @@ class Nex(object):
 			if found:
 				for hack in found:
 					self.Check03 = 'failed'
+					self.inInstanceCheats = hack
 					print(f' :' + Fore.RED + f' Not Clean ({hack})' + Fore.WHITE)
 			elif foundHeuristic:
 				for hack in foundHeuristic:
 					self.Check03 = 'failed'
+					self.inInstanceCheats = hack
 					print(f' :' + Fore.RED + f' Not Clean ({hack})' + Fore.WHITE)
 			else:
 				print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
+		self.addPercentageToProgress(6)
 
 	# Out of instance checks
 	def outOfInstance(self):
-
+		self.currentAction.value = 'Checking for external modifications'
+		self.addPercentageToProgress(6)
 		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #04')
 		dpsPid = self.getPID('DPS', service=True)
 		strings = self.dump(dpsPid)
@@ -240,13 +406,18 @@ class Nex(object):
 		if found:
 			for string in found:
 				self.Check04 = 'failed'
+				self.outCheats = cfg.dpsStrings[string]
 				print(f' :' + Fore.RED + f' Not Clean ({cfg.dpsStrings[string]})' + Fore.WHITE)
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
+		self.addPercentageToProgress(6)
+
 	# Checks for JNativeHook based autoclicker
 	def jnativehook(self):
 
+		self.currentAction.value = 'Checking for JNativeHook'
+		self.addPercentageToProgress(5)
 		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #05')
 		path = f'{self.user_path}/AppData/Local/Temp'
 
@@ -257,10 +428,13 @@ class Nex(object):
 			print(f' : ' + Fore.RED + f' Not Clean')
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
+		self.addPercentageToProgress(6)
 
 	# Gets recently executed + deleted files
 	def executedDeleted(self):
 
+		self.currentAction.value = 'Checking for executed and deleted files'
+		self.addPercentageToProgress(5)
 		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #06')
 		pcasvcPid = self.getPID('PcaSvc', service=True)
 		explorerPid = self.getPID('explorer.exe')
@@ -277,10 +451,7 @@ class Nex(object):
 					if string in explorerStrings:
 						filename = string.split('/')[-1]
 						self.Check06 = 'failed'
-						if self.deletedFiles == 'none':
-							self.deletedFiles = string + ', '
-						else:
-							self.deletedFiles = self.deletedFiles + string + ', '
+						self.deletedFiles = self.deletedFiles + string + '\n'
 						deleted[string] = {'filename': string, 'method': '01'}
 
 		if explorerStrings:
@@ -291,6 +462,8 @@ class Nex(object):
 						path = [x for x in string.split(',') if '.exe' in x][0]
 						if not os.path.isfile(path):
 							filename = path.split('/')[-1]
+							self.Check06 = 'failed'
+							self.deletedFiles = self.deletedFiles + path + '\n'
 							deleted[path] = {'filename': path, 'method': '02'}
 					except:
 						continue
@@ -304,9 +477,13 @@ class Nex(object):
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
 		print('')
+		self.addPercentageToProgress(6)
 
 	# New method to detect deleted dll files.
 	def deletedDLL(self):
+
+		self.currentAction.value = 'Checking for deleted library files'
+		self.addPercentageToProgress(5)
 		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #07')
 
 		dllFiles = {}
@@ -318,25 +495,27 @@ class Nex(object):
 				if string.startswith(self.drive_letter) and string.endswith('.dll'):
 					if not os.path.exists(string) and 'C:\Windows\system32' not in string and 'C:\Windows\System32' not in string:
 						self.Check06 = 'failed'
-						if self.deletedFiles == 'none':
-							self.deletedFiles = string + ', '
-						else:
-							self.deletedFiles = self.deletedFiles + string + ', '
+						self.deletedDLLs = self.deletedDLLs + string + '\n'
 						dllFiles[string] = {'filename': string, 'method': '03'}
 
 		if dllFiles is True:
 			print(' :' + Fore.RED + ' Not Clean')
+			self.Check07 = 'failed'
 			print('')
 			for path in dllFiles:
 				print(f'	- {path}' + Fore.RED)
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 		print('')
+		self.addPercentageToProgress(6)
 
 	def checkScansHistory(self):
 
+		self.currentAction.value = 'Checking for old scans in the database'
+		self.addPercentageToProgress(5)
 		print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #08')
 		if cfg.enableDatabase is False:
+			self.addPercentageToProgress(5)
 			return
 
 		Result02 = False
@@ -383,6 +562,8 @@ class Nex(object):
 		else:
 			print(' :' + Fore.GREEN + ' Clean' + Fore.WHITE)
 
+		self.addPercentageToProgress(5)
+
 	@staticmethod
 	def end():
 
@@ -394,7 +575,7 @@ class Nex(object):
 		exit()
 
 	def saveScan(self):
-		if self.deletedFiles is None:
+		if self.deletedFiles == '':
 			self.deletedFiles = 'none'
 
 		if cfg.enableDatabase is False:
@@ -408,57 +589,46 @@ class Nex(object):
 		self.sqlCnx.commit()
 
 
+
 Nex = Nex()
 Nex.asRoot()
 
-if cfg.disableAuth is False:
-	try:
-		currentPin = input('Enter the pin to start : ')
-		url = f'https://auth2.atome.cc/index.php?pin={currentPin}'
-		r = requests.get(url)
+Nex.run()
+quit()
+# Nex.connectDatabase()
+# Nex.mcProcess()
+# Nex.dependencies()
 
-		if 'verified' not in r.text:
-			quit()
-	except:
-		input('An error has occured...\nPress enter to exit')
-		quit()
-
-os.system('cls')
-Nex.connectDatabase()
-Nex.mcProcess()
-Nex.dependencies()
-
-
-print(f'{cfg.prefix} Starting Scan with ID: {cfg.scanID}\n')
+#print(f'{cfg.prefix} Starting Scan with ID: {cfg.scanID}\n')
 # print(f'{cfg.prefix} HWID : {cfg.hwid}\n')
 
 # Check #01
-Nex.recordingCheck()
+# Nex.recordingCheck()
 
 # Check #02
-Nex.modificationTimes()
+# Nex.modificationTimes()
 
 # Check #03
-Nex.inInstance()
+# Nex.inInstance()
 
 # Check #04
-Nex.outOfInstance()
+# Nex.outOfInstance()
 
 # Check #05
-Nex.jnativehook()
+# Nex.jnativehook()
 
 # Check #06
-Nex.executedDeleted()
+# Nex.executedDeleted()
 
 # Check #07
-Nex.deletedDLL()
+# Nex.deletedDLL()
 
 # Check #08
-if cfg.enableCheck08 is True and cfg.enableDatabase is True:
-	Nex.checkScansHistory()
-else:
-	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #08' + ' :' + Fore.YELLOW + ' Skipped' + Fore.WHITE)
+# if cfg.enableCheck08 is True and cfg.enableDatabase is True:
+# Nex.checkScansHistory()
+# else:
+# 	print(end=f'{cfg.prefix}' + Fore.CYAN + ' Running check #08' + ' :' + Fore.YELLOW + ' Skipped' + Fore.WHITE)
 
 
-Nex.saveScan()
-Nex.end()
+# Nex.saveScan()
+# Nex.end()
